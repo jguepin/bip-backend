@@ -1,6 +1,7 @@
-var mongoose = require('mongoose'),
-    bcrypt = require('bcrypt'),
-    User = require('../models/user');
+var bcrypt = require('bcrypt');
+
+var User = require('../models/user'),
+    response = require('../helpers').response;
 
 var SALT_WORK_FACTOR = 10;
 
@@ -10,27 +11,27 @@ exports.signup = function(req, res) {
   var password = req.body.password;
   var email = req.body.email;
 
-  if (!username || !password || !email) return res.status(500).send({ message: 'Missing field.' });
+  if (!username || !password || !email) return response(res, 400, 'Missing field.');
 
   var user = new User();
   user.username = username;
   user.email = email;
   bcrypt.hash(password, SALT_WORK_FACTOR, function(err, passwordHash) {
-    if (err) return res.status(500).send(err);
+    if (err) return response(res, 500, err);
 
     user.password = passwordHash;
     user.save(function(err) {
       if (err) {
         if (err.code === 11000)
-          return res.status(500).send({ message: 'Duplicate username.' });
+          return response(res, 500, 'Duplicate username.');
         else if (err.name === 'ValidationError')
-          return res.status(500).send({message: 'Email is invalid.' });
+          return response(res, 400, 'Email is invalid.');
 
-        return res.status(500).send(err);
+        return response(res, 500, err);
       }
 
       req.session.user = user;
-      res.send(user);
+      response(res, 200, user);
     });
   });
 };
@@ -42,11 +43,11 @@ exports.login = function(req, res) {
     .findOne(loginFields)
     .exec(function(err, user) {
       user.verifyPassword(req.body.password, function(err, match) {
-        if (err) return res.status(500).send(err);
-        if (!match) return res.status(401).send(false);
+        if (err) return response(res, 500, err);
+        if (!match) return response(res, 401, 'Wrong password');
 
         req.session.user = user;
-        res.send(true);
+        response(res, 200, true);
       });
     });
 };

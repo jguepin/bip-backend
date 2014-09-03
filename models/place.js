@@ -2,6 +2,8 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 var PlaceSchema = new Schema({
+  venueId: String, // Foursquare ID
+  placeId: String, // Google Places ID
   created: Date,
   name: String,
   type: String,
