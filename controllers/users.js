@@ -1,4 +1,5 @@
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt'),
+    uuid = require('node-uuid');
 
 var User = require('../models/user'),
     response = require('../helpers').response;
@@ -16,6 +17,7 @@ exports.signup = function(req, res) {
   var user = new User();
   user.username = username;
   user.email = email;
+  user.token = uuid();
   bcrypt.hash(password, SALT_WORK_FACTOR, function(err, passwordHash) {
     if (err) return response(res, 500, err);
 
@@ -30,7 +32,6 @@ exports.signup = function(req, res) {
         return response(res, 500, err);
       }
 
-      req.session.user = user;
       response(res, 200, user);
     });
   });
@@ -46,8 +47,7 @@ exports.login = function(req, res) {
         if (err) return response(res, 500, err);
         if (!match) return response(res, 401, 'Wrong password');
 
-        req.session.user = user;
-        response(res, 200, true);
+        response(res, 200, user);
       });
     });
 };
