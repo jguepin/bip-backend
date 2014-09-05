@@ -32,6 +32,7 @@ exports.signup = function(req, res) {
         return response(res, 500, err);
       }
 
+      req.session.user = user;
       response(res, 200, user);
     });
   });
@@ -43,10 +44,12 @@ exports.login = function(req, res) {
   User
     .findOne(loginFields)
     .exec(function(err, user) {
-      user.verifyPassword(req.body.password, function(err, match) {
-        if (err) return response(res, 500, err);
-        if (!match) return response(res, 401, 'Wrong password');
+      if (err || !user) return response(res, 404, 'User not found');
 
+      user.verifyPassword(req.body.password, function(err, match) {
+        if (err || !match) return response(res, 401, 'Wrong password');
+
+        req.session.user = user;
         response(res, 200, user);
       });
     });

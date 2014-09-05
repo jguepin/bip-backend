@@ -1,10 +1,11 @@
 var express = require('express');
 
 var users = require('./controllers/users'),
-    places = require('./controllers/places');
+    places = require('./controllers/places'),
+    requireLogin = require('./helpers').requireLogin;
 
 exports.map = function(app) {
-  app.get('/', function(req, res) {
+  app.get('/', requireLogin, function(req, res) {
     res.send('Hello World!');
   });
 

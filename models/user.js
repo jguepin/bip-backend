@@ -6,7 +6,7 @@ var UserSchema = new Schema({
   email: { type: String, required: true, match: /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/ },
   username: { type: String, required: true, unique: true },
   password: { type: String, require: true },
-  token: String,
+  token: { type: String, unique: true },
   home_city: { type: String },
   contacts: [{ type: Schema.ObjectId, ref: 'User' }]
 });
