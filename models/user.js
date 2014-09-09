@@ -8,7 +8,8 @@ var UserSchema = new Schema({
   password: { type: String, require: true },
   token: { type: String, unique: true },
   home_city: { type: String },
-  contacts: [{ type: Schema.ObjectId, ref: 'User' }]
+  contacts: [{ type: Schema.ObjectId, ref: 'User' }],
+  places: [{ type: Schema.ObjectId, ref: 'Place' }]
 });
 
 UserSchema.methods.verifyPassword = function(password, callback) {

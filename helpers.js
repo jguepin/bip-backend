@@ -7,7 +7,7 @@ var response = exports.response = function(res, code, data, next) {
   if (code === 200) {
     envelope.status = 'success';
     envelope.data = data || null;
-    envelope.next = next || null;
+    if (next) envelope.next = next;
   } else {
     envelope.status = 'error';
     envelope.message = data || 'Internal Server Error';
@@ -22,11 +22,6 @@ exports.requireLogin = function(req, res, next) {
   var handleAuthError = function() {
     response(res, 401, 'Authentication required');
   };
-
-  // User is authenticated and has already been stored in the session
-  if (req.session.user) {
-    return next();
-  }
 
   var token = req.get('Authorization');
   if (!token) return handleAuthError();

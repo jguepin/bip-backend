@@ -13,4 +13,5 @@ exports.map = function(app) {
   app.post('/users/login', users.login);
 
   app.get('/places/search', places.search);
+  app.post('/places/save', requireLogin, places.save);
 };
