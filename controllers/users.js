@@ -2,6 +2,7 @@ var bcrypt = require('bcrypt'),
     uuid = require('node-uuid');
 
 var User = require('../models/user'),
+    Place = require('../models/place'),
     response = require('../helpers').response;
 
 var SALT_WORK_FACTOR = 10;
@@ -53,4 +54,14 @@ exports.login = function(req, res) {
         response(res, 200, user);
       });
     });
+};
+
+// Get the home of a user (all places he saved)
+exports.home = function(req, res) {
+  Place
+    .find({ _id: { $in: req.session.user.places }})
+    .exec(function(err, places) {
+      if (err) return response(res, 500, err);
+      return response(res, 200, places);
+  });
 };

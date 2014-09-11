@@ -11,6 +11,7 @@ exports.map = function(app) {
 
   app.post('/users/signup', users.signup);
   app.post('/users/login', users.login);
+  app.get('/users/home', requireLogin, users.home);
 
   app.get('/places/search', places.search);
   app.post('/places/save', requireLogin, places.save);

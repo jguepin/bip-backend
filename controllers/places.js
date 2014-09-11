@@ -21,6 +21,12 @@ exports.search = function(req, res) {
 
     // Parse Google response into something better
     var places = _.map(body.results, Place.mapGoogleItem);
+    // Dirty fix to remove place _id on search
+    places = _.map(places, function(place) {
+      place = place.toObject();
+      delete place._id;
+      return place;
+    });
     var next = body.next_page_token;
 
     response(res, 200, places, next);
