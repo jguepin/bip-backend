@@ -1,5 +1,5 @@
 var request = require('request'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     async = require('async');
 
 var config = require('../config'),
@@ -31,7 +31,7 @@ exports.save = function(req, res) {
   async.waterfall([
     function(callback) {
       Place
-        .findOne({ placeId: req.body.placeId })
+        .findOne({ place_id: req.body.place_id })
         .exec(function(err, place) {
           if (err) return callback(err);
 
@@ -41,7 +41,7 @@ exports.save = function(req, res) {
           } else {
           // The place is not saved in our db yet, save it!
             var newPlace = new Place();
-            newPlace.placeId = req.body.placeId;
+            newPlace.place_id = req.body.place_id;
             newPlace.name = req.body.name;
             newPlace.location = req.body.location;
             newPlace.type = req.body.type;
@@ -55,11 +55,8 @@ exports.save = function(req, res) {
     },
     function(place, callback) {
       // Save the place in the users places
-      var alreadySaved = _.find(req.session.user.places, function(userPlace) {
-        return userPlace.toString() === place._id.toString();
-      });
-      if (!alreadySaved) {
-        req.session.user.places.push(place._id);
+      var added = req.session.user.places.addToSet(place._id);
+      if (added.length) {
         req.session.user.save(function(err) {
           callback(err);
         });
@@ -71,5 +68,13 @@ exports.save = function(req, res) {
     if (err) return response(res, 500, err);
 
     return response(res, 200);
+  });
+};
+
+exports.remove = function(req, res) {
+  var result = req.session.user.places.pull(req.params.placeId);
+  req.session.user.save(function(err) {
+    if (err) response(res, 500);
+    else response(res, 200);
   });
 };

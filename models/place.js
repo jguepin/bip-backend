@@ -2,8 +2,8 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 var PlaceSchema = new Schema({
-  venueId: String, // Foursquare ID
-  placeId: String, // Google Places ID
+  venue_id: String, // Foursquare ID
+  place_id: String, // Google Places ID
   created: Date,
   name: String,
   type: String,
@@ -19,7 +19,7 @@ var PlaceSchema = new Schema({
 PlaceSchema.statics.mapGoogleItem = function(placeItem) {
   var Place = mongoose.model('Place');
   var place = new Place();
-  place.placeId = placeItem.place_id;
+  place.place_id = placeItem.place_id;
   place.name = placeItem.name;
   place.type = placeItem.types && placeItem.types.length && placeItem.types[0];
   place.location = placeItem.geometry && placeItem.geometry.location;
