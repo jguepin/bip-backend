@@ -30,28 +30,42 @@ exports.search = function(req, res) {
 exports.save = function(req, res) {
   async.waterfall([
     function(callback) {
-      Place
-        .findOne({ place_id: req.body.place_id })
-        .exec(function(err, place) {
-          if (err) return callback(err);
-
-          if (place) {
-            // Place already saved in our db, affect it the user
+      if (req.body._id) {
+        // It's a place from our DB
+        Place
+          .findOne({ _id: req.body._id })
+          .exec(function(err, place) {
+            if (err || !place) return callback(err || 'Place not found.');
             return callback(null, place);
-          } else {
-          // The place is not saved in our db yet, save it!
-            var newPlace = new Place();
-            newPlace.place_id = req.body.place_id;
-            newPlace.name = req.body.name;
-            newPlace.location = req.body.location;
-            newPlace.type = req.body.type;
-            newPlace.address = req.body.address;
-            newPlace.score = req.body.score;
-            newPlace.save(function(err) {
-              callback(err, newPlace);
-            });
-          }
-      });
+          });
+
+      } else if (req.body.place_id) {
+        // It's a place from Google Places
+        Place
+          .findOne({ place_id: req.body.place_id })
+          .exec(function(err, place) {
+            if (err) return callback(err);
+
+            if (place) {
+              // Place already saved in our db, affect it the user
+              return callback(null, place);
+            } else {
+            // The place is not saved in our db yet, save it!
+              var newPlace = new Place();
+              newPlace.place_id = req.body.place_id;
+              newPlace.name = req.body.name;
+              newPlace.location = req.body.location;
+              newPlace.type = req.body.type;
+              newPlace.address = req.body.address;
+              newPlace.score = req.body.score;
+              newPlace.save(function(err) {
+                callback(err, newPlace);
+              });
+            }
+        });
+      } else {
+        return callback('Missing parameter!');
+      }
     },
     function(place, callback) {
       // Save the place in the users places
