@@ -65,3 +65,25 @@ exports.home = function(req, res) {
       return response(res, 200, places);
   });
 };
+
+// Add a contact to a user
+exports.addContact = function(req, res) {
+  var contactField = req.body.username ? { username: req.body.username } : { email: req.body.email };
+  User
+    .findOne(contactField)
+    .exec(function(err, user) {
+      if (err || !user) return response(res, 404, 'User not found');
+
+      // Save the contact user in the current user contacts
+      var added = req.session.user.contacts.addToSet(user._id);
+      if (added.length) {
+        req.session.user.save(function(err) {
+          if (err) return response(res, 500);
+
+          return response(res, 200);
+        });
+      } else {
+        return response(res, 200);
+      }
+    });
+};
