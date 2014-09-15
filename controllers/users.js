@@ -87,3 +87,12 @@ exports.addContact = function(req, res) {
       }
     });
 };
+
+exports.getContacts = function(req, res) {
+  User
+    .find({ _id: { $in: req.session.user.contacts }})
+    .exec(function(err, users) {
+      if (err) return response(res, 500, err);
+      return response(res, 200, users);
+    });
+};

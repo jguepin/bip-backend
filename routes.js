@@ -21,6 +21,7 @@ exports.map = function(app) {
 
   // User contacts
   app.post('/users/add_contact', requireLogin, users.addContact);
+  app.get('/users/contacts', requireLogin, users.getContacts);
 
   /**
    * PLACES
