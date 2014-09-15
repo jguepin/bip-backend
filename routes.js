@@ -29,5 +29,5 @@ exports.map = function(app) {
   app.get('/places/search', places.search);
   app.post('/places/save', requireLogin, places.save);
   app.delete('/places/:placeId', requireLogin, places.remove);
-  // app.post('/places/send', requireLogin, places.send);
+  app.post('/places/send', requireLogin, places.send);
 };

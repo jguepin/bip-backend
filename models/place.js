@@ -4,7 +4,7 @@ var mongoose = require('mongoose'),
 var PlaceSchema = new Schema({
   venue_id: String, // Foursquare ID
   place_id: String, // Google Places ID
-  created: Date,
+  created: { type: Date, default: Date.now },
   name: String,
   type: String,
   address: String,
@@ -24,7 +24,6 @@ PlaceSchema.statics.mapGoogleItem = function(placeItem) {
   place.type = placeItem.types && placeItem.types.length && placeItem.types[0];
   place.location = placeItem.geometry && placeItem.geometry.location;
   place.address = placeItem.formatted_address;
-  place.score = placeItem.rating;
 
   // TODO: photos, hours
 

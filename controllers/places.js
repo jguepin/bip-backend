@@ -4,7 +4,8 @@ var request = require('request'),
 
 var config = require('../config'),
     response = require('../helpers').response,
-    Place = require('../models/place');
+    Place = require('../models/place'),
+    Message = require('../models/message');
 
 exports.search = function(req, res) {
   // Fetch search results from Google Places API
@@ -55,15 +56,14 @@ var getOrCreatePlace = function(placeData, callback) {
           return callback(null, place);
         } else {
         // The place is not saved in our db yet, save it!
-          var newPlace = new Place();
-          newPlace.place_id = placeData.place_id;
-          newPlace.name = placeData.name;
-          newPlace.location = placeData.location;
-          newPlace.type = placeData.type;
-          newPlace.address = placeData.address;
-          newPlace.score = placeData.score;
-          newPlace.save(function(err) {
-            callback(err, newPlace);
+          place = new Place();
+          place.place_id = placeData.place_id;
+          place.name = placeData.name;
+          place.location = placeData.location;
+          place.type = placeData.type;
+          place.address = placeData.address;
+          place.save(function(err) {
+            callback(err, place);
           });
         }
     });
@@ -85,6 +85,23 @@ exports.save = function(req, res) {
     } else {
       return response(res, 200);
     }
+  });
+};
+
+exports.send = function(req, res) {
+  getOrCreatePlace(req.body.place, function(err, place) {
+    if (err) return response(res, 500, err);
+
+    var message = new Message();
+    message.from_user = req.session.user._id;
+    message.place = place._id;
+    message.content = req.body.content;
+    message.to_users = req.body.to_users;
+    message.save(function(err) {
+      if (err) return response(res, 500, err);
+
+      return response(res, 200);
+    });
   });
 };
 
