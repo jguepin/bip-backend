@@ -33,61 +33,58 @@ exports.search = function(req, res) {
   });
 };
 
-exports.save = function(req, res) {
-  async.waterfall([
-    function(callback) {
-      if (req.body._id) {
-        // It's a place from our DB
-        Place
-          .findOne({ _id: req.body._id })
-          .exec(function(err, place) {
-            if (err || !place) return callback(err || 'Place not found.');
-            return callback(null, place);
+var getOrCreatePlace = function(placeData, callback) {
+  if (placeData._id) {
+    // It's a place from our DB
+    Place
+      .findOne({ _id: placeData._id })
+      .exec(function(err, place) {
+        if (err || !place) return callback(err || 'Place not found.');
+        return callback(null, place);
+      });
+
+  } else if (placeData.place_id) {
+    // It's a place from Google Places
+    Place
+      .findOne({ place_id: placeData.place_id })
+      .exec(function(err, place) {
+        if (err) return callback(err);
+
+        if (place) {
+          // Place already saved in our db
+          return callback(null, place);
+        } else {
+        // The place is not saved in our db yet, save it!
+          var newPlace = new Place();
+          newPlace.place_id = placeData.place_id;
+          newPlace.name = placeData.name;
+          newPlace.location = placeData.location;
+          newPlace.type = placeData.type;
+          newPlace.address = placeData.address;
+          newPlace.score = placeData.score;
+          newPlace.save(function(err) {
+            callback(err, newPlace);
           });
+        }
+    });
+  } else {
+    return callback('Missing parameter!');
+  }
+};
 
-      } else if (req.body.place_id) {
-        // It's a place from Google Places
-        Place
-          .findOne({ place_id: req.body.place_id })
-          .exec(function(err, place) {
-            if (err) return callback(err);
-
-            if (place) {
-              // Place already saved in our db, affect it the user
-              return callback(null, place);
-            } else {
-            // The place is not saved in our db yet, save it!
-              var newPlace = new Place();
-              newPlace.place_id = req.body.place_id;
-              newPlace.name = req.body.name;
-              newPlace.location = req.body.location;
-              newPlace.type = req.body.type;
-              newPlace.address = req.body.address;
-              newPlace.score = req.body.score;
-              newPlace.save(function(err) {
-                callback(err, newPlace);
-              });
-            }
-        });
-      } else {
-        return callback('Missing parameter!');
-      }
-    },
-    function(place, callback) {
-      // Save the place in the users places
-      var added = req.session.user.places.addToSet(place._id);
-      if (added.length) {
-        req.session.user.save(function(err) {
-          callback(err);
-        });
-      } else {
-        callback();
-      }
-    }
-  ], function(err, results) {
+exports.save = function(req, res) {
+  getOrCreatePlace(req.body, function(err, place) {
     if (err) return response(res, 500, err);
 
-    return response(res, 200);
+    // Save the place in the user places
+    var added = req.session.user.places.addToSet(place._id);
+    if (added.length) {
+      req.session.user.save(function(err) {
+        return response(res, 200);
+      });
+    } else {
+      return response(res, 200);
+    }
   });
 };
 
