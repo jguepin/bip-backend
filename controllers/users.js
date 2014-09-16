@@ -41,19 +41,21 @@ exports.signup = function(req, res) {
 
 // Login a user with a username or an email and a password
 exports.login = function(req, res) {
-  var loginFields = req.body.username ? { username: req.body.username } : { email: req.body.email };
-  User
-    .findOne(loginFields)
-    .exec(function(err, user) {
-      if (err || !user) return response(res, 404, 'User not found');
+    var identifier = req.body.identifier;
+    var password = req.body.password;
+    if (!identifier || !password) return response(res, 400, 'Missing field.');
+    User
+        .findOne({ $or:[{ username: identifier }, { email: identifier }] })
+        .exec(function(err, user) {
+            if (err || !user) return response(res, 404, 'User not found');
 
-      user.verifyPassword(req.body.password, function(err, match) {
-        if (err || !match) return response(res, 401, 'Wrong password');
+            user.verifyPassword(req.body.password, function(err, match) {
+                if (err || !match) return response(res, 401, 'Wrong password');
 
-        req.session.user = user;
-        response(res, 200, user);
-      });
-    });
+                req.session.user = user;
+                response(res, 200, user);
+            });
+        });
 };
 
 // Get the home of a user (all places he saved)
