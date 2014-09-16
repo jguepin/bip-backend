@@ -23,6 +23,12 @@ npm install
 
 ## Run
 
+Run MongoDB:
+
+```
+mongod
+```
+
 Run the Town backend:
 ```
 node server.js
