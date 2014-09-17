@@ -5,7 +5,7 @@ var request = require('request'),
 var config = require('../config'),
     response = require('../helpers').response,
     Place = require('../models/place'),
-    Message = require('../models/message');
+    Notification = require('../models/notification');
 
 exports.search = function(req, res) {
   // Fetch search results from Google Places API
@@ -82,6 +82,7 @@ exports.save = function(req, res) {
     var added = req.session.user.places.addToSet(place._id);
     if (added.length) {
       req.session.user.save(function(err) {
+        if (err) return response(res, 500, err);
         return response(res, 200);
       });
     } else {
@@ -92,17 +93,30 @@ exports.save = function(req, res) {
 
 exports.send = function(req, res) {
   getOrCreatePlace(req.body.place, function(err, place) {
-    if (err) return response(res, 500, err);
+    if (err || !place) return response(res, 500, err);
 
-    var message = new Message();
-    message.from_user = req.session.user._id;
-    message.place = place._id;
-    message.content = req.body.content;
-    message.to_users = req.body.to_users;
-    message.save(function(err) {
+    // Send a notification to all destination users
+    async.each(req.body.to_users, function(to_user_id, callback) {
+      var notif = new Notification();
+      notif.from_user = req.session.user._id;
+      notif.place = place._id;
+      notif.message = req.body.message;
+      notif.to_user = to_user_id;
+      notif.save(callback);
+
+    }, function(err) {
       if (err) return response(res, 500, err);
 
-      return response(res, 200);
+      // Save the place in the sender places
+      var added = req.session.user.places.addToSet(place._id);
+      if (added.length) {
+        req.session.user.save(function(err) {
+          if (err) return response(res, 500, err);
+          return response(res, 200);
+        });
+      } else {
+        return response(res, 200);
+      }
     });
   });
 };
