@@ -17,7 +17,7 @@ exports.map = function(app) {
   app.post('/users/login', users.login);
 
   // User places data
-  app.get('/users/home', requireLogin, users.home);
+  app.get('/users/places', requireLogin, users.getPlaces);
 
   // User contacts
   app.post('/users/add_contact', requireLogin, users.addContact);

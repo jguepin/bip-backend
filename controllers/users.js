@@ -58,8 +58,8 @@ exports.login = function(req, res) {
         });
 };
 
-// Get the home of a user (all places he saved)
-exports.home = function(req, res) {
+// Get all the places of a user
+exports.getPlaces = function(req, res) {
   Place
     .find({ _id: { $in: req.session.user.places }})
     .exec(function(err, places) {
