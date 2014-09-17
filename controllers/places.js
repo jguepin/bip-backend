@@ -13,7 +13,9 @@ exports.search = function(req, res) {
     url: 'https://maps.googleapis.com/maps/api/place/textsearch/json',
     qs: {
       key: config.googleApiKey,
-      query: req.query.query
+      query: req.query.query,
+      location: req.query.location || undefined,
+      radius: req.query.location && 1000 || undefined
     }
   }, function(error, resp, body) {
     if (error) return response(res, 500, error);
