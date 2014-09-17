@@ -45,17 +45,17 @@ exports.login = function(req, res) {
     var password = req.body.password;
     if (!identifier || !password) return response(res, 400, 'Missing field.');
     User
-        .findOne({ $or:[{ username: identifier }, { email: identifier }] })
-        .exec(function(err, user) {
-            if (err || !user) return response(res, 404, 'User not found');
+      .findOne({ $or:[{ username: identifier }, { email: identifier }] })
+      .exec(function(err, user) {
+        if (err || !user) return response(res, 404, 'User not found');
 
-            user.verifyPassword(req.body.password, function(err, match) {
-                if (err || !match) return response(res, 401, 'Wrong password');
+        user.verifyPassword(req.body.password, function(err, match) {
+          if (err || !match) return response(res, 401, 'Wrong password');
 
-                req.session.user = user;
-                response(res, 200, user);
-            });
+          req.session.user = user;
+          response(res, 200, user);
         });
+      });
 };
 
 // Get all the places of a user
@@ -70,9 +70,9 @@ exports.getPlaces = function(req, res) {
 
 // Add a contact to a user
 exports.addContact = function(req, res) {
-  var contactField = req.body.username ? { username: req.body.username } : { email: req.body.email };
+  var identifier = req.body.identifier;
   User
-    .findOne(contactField)
+    .findOne({ $or: [{ username: identifier }, { email: identifier }] })
     .exec(function(err, user) {
       if (err || !user) return response(res, 404, 'User not found');
 
