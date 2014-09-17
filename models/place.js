@@ -8,7 +8,8 @@ var PlaceSchema = new Schema({
   name: String,
   type: String,
   address: String,
-  location: { longitude: Number, latitude: Number },
+  latitude: Number,
+  longitude: Number,
   price: Number,
   hours: String,
   score: Number,
@@ -22,7 +23,8 @@ PlaceSchema.statics.mapGoogleItem = function(placeItem) {
   place.place_id = placeItem.place_id;
   place.name = placeItem.name;
   place.type = placeItem.types && placeItem.types.length && placeItem.types[0];
-  place.location = placeItem.geometry && placeItem.geometry.location;
+  place.latitude = placeItem.geometry && placeItem.geometry.location && placeItem.geometry.location.lat || undefined;
+  place.longitude = placeItem.geometry && placeItem.geometry.location && placeItem.geometry.location.lng || undefined;
   place.address = placeItem.formatted_address;
 
   // TODO: photos, hours
