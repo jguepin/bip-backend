@@ -17,22 +17,29 @@ exports.search = function(req, res) {
       location: req.query.location || undefined,
       radius: req.query.location && 1000 || undefined
     }
-  }, function(error, resp, body) {
+  }, function(error, resp, searchBody) {
     if (error) return response(res, 500, error);
 
-    body = JSON.parse(body);
+    searchBody = JSON.parse(searchBody);
 
-    // Parse Google response into something better
-    var places = _.map(body.results, Place.mapGoogleItem);
-    // Dirty fix to remove place _id on search
-    places = _.map(places, function(place) {
-      place = place.toObject();
-      delete place._id;
-      return place;
+    async.map(searchBody.results, function(place, callback) {
+      // Get detailed information about the place from Google Places API
+      request.get({
+        url: 'https://maps.googleapis.com/maps/api/place/details/json',
+        qs: {
+          key: config.googleApiKey,
+          placeid: place.place_id
+        }
+      }, function(err, resp, placeBody) {
+        placeBody = JSON.parse(placeBody);
+        // Return a parsed version of the place
+        callback(err, Place.mapGoogleItem(placeBody.result));
+      });
+    }, function(err, places) {
+      if (err) return response(res, 500, err);
+
+      response(res, 200, places, searchBody.next_page_token);
     });
-    var next = body.next_page_token;
-
-    response(res, 200, places, next);
   });
 };
 
