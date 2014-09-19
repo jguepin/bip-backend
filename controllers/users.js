@@ -58,6 +58,11 @@ exports.login = function(req, res) {
       });
 };
 
+// Get the profile of the connected user
+exports.getSelf = function(req, res) {
+  response(res, 200, req.session.user);
+};
+
 // Get all the places of a user
 exports.getPlaces = function(req, res) {
   Place

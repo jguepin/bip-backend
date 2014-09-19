@@ -12,6 +12,8 @@ var UserSchema = new Schema({
   places: [{ type: Schema.ObjectId, ref: 'Place' }]
 });
 
+// TODO: add a virtual 'notifications' field that contains unread notifs
+
 UserSchema.methods.verifyPassword = function(password, callback) {
   bcrypt.compare(password, this.password, callback);
 };
