@@ -71,6 +71,13 @@ var getOrCreatePlace = function(placeData, callback) {
           place.location = placeData.location;
           place.type = placeData.type;
           place.address = placeData.address;
+          place.latitude = placeData.latitude;
+          place.longitude = placeData.longitude;
+          place.price = placeData.price;
+          place.hours = placeData.hours;
+          place.phone = placeData.phone;
+          place.photos = placeData.photos;
+
           place.save(function(err) {
             callback(err, place);
           });

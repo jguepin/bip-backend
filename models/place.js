@@ -14,7 +14,7 @@ var PlaceSchema = new Schema({
   latitude: Number,
   longitude: Number,
   price: Number,
-  hours: String,
+  hours: {},
   score: Number,
   phone: String,
   photos: [{ url: String, width: Number, height: Number }]
@@ -30,8 +30,13 @@ PlaceSchema.statics.mapGoogleItem = function(placeItem) {
   place.latitude = placeItem.geometry && placeItem.geometry.location && placeItem.geometry.location.lat || undefined;
   place.longitude = placeItem.geometry && placeItem.geometry.location && placeItem.geometry.location.lng || undefined;
   place.price = placeItem.price_level;
-  // FIXME: return hours properly
-  place.hours = placeItem.opening_hours && placeItem.opening_hours.periods || undefined;
+  if (placeItem.opening_hours && placeItem.opening_hours.periods) {
+    place.hours = {};
+    _.each(placeItem.opening_hours.periods, function(period) {
+      place.hours[period.open.day] = { open: period.open.time, close: period.close.time };
+    });
+  }
+
   place.phone = placeItem.international_phone_number;
 
   place.photos = _.map(placeItem.photos, function(photo) {
