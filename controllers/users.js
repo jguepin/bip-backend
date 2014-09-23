@@ -3,6 +3,7 @@ var bcrypt = require('bcrypt'),
 
 var User = require('../models/user'),
     Place = require('../models/place'),
+    Notification = require('../models/notification'),
     response = require('../helpers').response;
 
 var SALT_WORK_FACTOR = 10;
@@ -101,5 +102,14 @@ exports.getContacts = function(req, res) {
     .exec(function(err, users) {
       if (err) return response(res, 500, err);
       return response(res, 200, users);
+    });
+};
+
+exports.getNotifications = function(req, res) {
+  Notification
+    .find({ to_user: req.session.user._id })
+    .exec(function(err, notifs) {
+      if (err) return response(res, 500, err);
+      return response(res, 200, notifs);
     });
 };

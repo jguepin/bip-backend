@@ -24,6 +24,9 @@ exports.map = function(app) {
   app.post('/users/add_contact', requireLogin, users.addContact);
   app.get('/users/contacts', requireLogin, users.getContacts);
 
+  // User notifs
+  app.get('/users/notifications', requireLogin, users.getNotifications);
+
   /**
    * PLACES
    */
