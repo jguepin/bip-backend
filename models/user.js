@@ -2,6 +2,8 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
     bcrypt = require('bcrypt');
 
+var makeExposable = require('../helpers').makeExposable;
+
 var UserSchema = new Schema({
   email: { type: String, required: true, match: /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/ },
   username: { type: String, required: true, unique: true },
@@ -12,10 +14,16 @@ var UserSchema = new Schema({
   places: [{ type: Schema.ObjectId, ref: 'Place' }]
 });
 
-// TODO: add a virtual 'notifications' field that contains unread notifs
 
 UserSchema.methods.verifyPassword = function(password, callback) {
   bcrypt.compare(password, this.password, callback);
 };
 
-module.exports = mongoose.model('User', UserSchema);
+var User = mongoose.model('User', UserSchema);
+// makeExposable(User, {
+//   _id: '_id',
+//   email: 'email',
+//   username: 'username'
+// });
+
+module.exports = User;

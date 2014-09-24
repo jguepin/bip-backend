@@ -1,4 +1,17 @@
-var User = require('./models/user');
+var _ = require('lodash');
+
+// Modify the toJSON method to modify the exposed object
+exports.makeExposable = function(model, exposable) {
+  model.prototype._toJSON = model.prototype.toJSON;
+  model.prototype.toJSON = function() {
+    var json = this._toJSON();
+    var exposed = {};
+    _.each(_.keys(exposable), function(key) {
+      exposed[key] = json[exposable[key]];
+    });
+    return exposed;
+  };
+};
 
 // Wrap all API responses in an envelope
 var response = exports.response = function(res, code, data, next) {
@@ -27,6 +40,7 @@ exports.requireLogin = function(req, res, next) {
   if (!token) return handleAuthError();
 
   // Lookup for this token in the users db
+  var User = require('./models/user');
   User
     .findOne({ token: token })
     .exec(function(err, user) {
