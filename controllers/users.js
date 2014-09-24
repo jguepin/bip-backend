@@ -108,6 +108,7 @@ exports.getContacts = function(req, res) {
 exports.getNotifications = function(req, res) {
   Notification
     .find({ to_user: req.session.user._id })
+    .populate('place from_user')
     .exec(function(err, notifs) {
       if (err) return response(res, 500, err);
       return response(res, 200, notifs);
