@@ -17,7 +17,7 @@ var PlaceSchema = new Schema({
   hours: {},
   score: Number,
   phone: String,
-  photos: [{ url: String, width: Number, height: Number }]
+  photos: []
 });
 
 PlaceSchema.statics.mapGoogleItem = function(placeItem) {
@@ -41,9 +41,9 @@ PlaceSchema.statics.mapGoogleItem = function(placeItem) {
 
   place.photos = _.map(placeItem.photos, function(photo) {
     return {
-      url: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=' + photo.width + '&photoreference=' + photo.photo_reference + '&key=' + config.googleApiKey,
-      width: photo.width,
-      height: photo.height
+      s: getGooglePhoto(photo, 160),
+      m: getGooglePhoto(photo, 500),
+      l: getGooglePhoto(photo, photo.width)
     };
   });
 
@@ -51,5 +51,13 @@ PlaceSchema.statics.mapGoogleItem = function(placeItem) {
 
   return place;
 };
+
+function getGooglePhoto(photo, size) {
+  return {
+    url: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=' + size + '&photoreference=' + photo.photo_reference + '&key=' + config.googleApiKey,
+    width: size,
+    height: Math.round((photo.height * size) / photo.width)
+  };
+}
 
 module.exports = mongoose.model('Place', PlaceSchema);
