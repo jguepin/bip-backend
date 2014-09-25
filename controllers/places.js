@@ -18,7 +18,7 @@ exports.search = function(req, res) {
       radius: req.query.location && 1000 || undefined
     }
   }, function(error, resp, searchBody) {
-    if (error) return response(res, 500, error);
+    if (error) return response(req, res, 500, error);
 
     searchBody = JSON.parse(searchBody);
 
@@ -36,9 +36,9 @@ exports.search = function(req, res) {
         callback(err, Place.mapGoogleItem(placeBody.result));
       });
     }, function(err, places) {
-      if (err) return response(res, 500, err);
+      if (err) return response(req, res, 500, err);
 
-      response(res, 200, places, searchBody.next_page_token);
+      response(req, res, 200, places, searchBody.next_page_token);
     });
   });
 };
@@ -90,24 +90,24 @@ var getOrCreatePlace = function(placeData, callback) {
 
 exports.save = function(req, res) {
   getOrCreatePlace(req.body, function(err, place) {
-    if (err) return response(res, 500, err);
+    if (err) return response(req, res, 500, err);
 
     // Save the place in the user places
     var added = req.session.user.places.addToSet(place._id);
     if (added.length) {
       req.session.user.save(function(err) {
-        if (err) return response(res, 500, err);
-        return response(res, 200);
+        if (err) return response(req, res, 500, err);
+        return response(req, res, 200);
       });
     } else {
-      return response(res, 200);
+      return response(req, res, 200);
     }
   });
 };
 
 exports.send = function(req, res) {
   getOrCreatePlace(req.body.place, function(err, place) {
-    if (err || !place) return response(res, 500, err);
+    if (err || !place) return response(req, res, 500, err);
 
     // Send a notification to all destination users
     async.each(req.body.to_users, function(to_user_id, callback) {
@@ -119,17 +119,17 @@ exports.send = function(req, res) {
       notif.save(callback);
 
     }, function(err) {
-      if (err) return response(res, 500, err);
+      if (err) return response(req, res, 500, err);
 
       // Save the place in the sender places
       var added = req.session.user.places.addToSet(place._id);
       if (added.length) {
         req.session.user.save(function(err) {
-          if (err) return response(res, 500, err);
-          return response(res, 200);
+          if (err) return response(req, res, 500, err);
+          return response(req, res, 200);
         });
       } else {
-        return response(res, 200);
+        return response(req, res, 200);
       }
     });
   });
@@ -138,7 +138,7 @@ exports.send = function(req, res) {
 exports.remove = function(req, res) {
   var result = req.session.user.places.pull(req.params.placeId);
   req.session.user.save(function(err) {
-    if (err) response(res, 500);
-    else response(res, 200);
+    if (err) response(req, res, 500);
+    else response(req, res, 200);
   });
 };

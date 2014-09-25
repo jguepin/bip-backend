@@ -1,25 +1,32 @@
 var _ = require('lodash');
 
 // Modify the toJSON method to modify the exposed object
-exports.makeExposable = function(model, exposable) {
+// TODO: find a better way to traverse objects recursively and transform properties
+exports.makeExposable = function(model, expose) {
   model.prototype._toJSON = model.prototype.toJSON;
   model.prototype.toJSON = function() {
     var json = this._toJSON();
-    var exposed = {};
-    _.each(_.keys(exposable), function(key) {
-      exposed[key] = json[exposable[key]];
-    });
-    return exposed;
+    json.expose = expose;
+    return json;
   };
 };
 
+var stringify = function(object, context) {
+  return JSON.stringify(object, function(key, value) {
+    if (value && typeof value.expose === 'function') {
+      return value.expose(value, context);
+    }
+    return value;
+  });
+};
+
 // Wrap all API responses in an envelope
-var response = exports.response = function(res, code, data, next) {
+var response = exports.response = function(req, res, code, data, next) {
   var envelope = {};
 
   if (code === 200) {
     envelope.status = 'success';
-    envelope.data = data || null;
+    envelope.data = data && JSON.parse(stringify(data, req)) || null;
     if (next) envelope.next = next;
   } else {
     envelope.status = 'error';

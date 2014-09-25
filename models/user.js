@@ -20,10 +20,14 @@ UserSchema.methods.verifyPassword = function(password, callback) {
 };
 
 var User = mongoose.model('User', UserSchema);
-// makeExposable(User, {
-//   _id: '_id',
-//   email: 'email',
-//   username: 'username'
-// });
+makeExposable(User, function(json, context) {
+  var isSelf = context.session.user._id.toString() === json._id.toString();
+  return {
+    _id: json._id,
+    email: json.email,
+    username: json.username,
+    token: isSelf ? json.token : undefined
+  };
+});
 
 module.exports = User;
