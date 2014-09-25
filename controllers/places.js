@@ -1,44 +1,26 @@
-var request = require('request'),
-    _ = require('lodash'),
-    async = require('async');
+var async = require('async');
 
-var config = require('../config'),
+var google = require('../lib/google'),
     response = require('../helpers').response,
     Place = require('../models/place'),
     Notification = require('../models/notification');
 
 exports.search = function(req, res) {
   // Fetch search results from Google Places API
-  request.get({
-    url: 'https://maps.googleapis.com/maps/api/place/textsearch/json',
-    qs: {
-      key: config.googleApiKey,
-      query: req.query.query,
-      location: req.query.location || undefined,
-      radius: req.query.location && 1000 || undefined
-    }
-  }, function(error, resp, searchBody) {
-    if (error) return response(req, res, 500, error);
+  google.searchPlaces(req.query.query, req.query.location, function(err, places, next) {
+    if (err) return response(req, res, 500, err);
 
-    searchBody = JSON.parse(searchBody);
-
-    async.map(searchBody.results, function(place, callback) {
+    async.map(places, function(place, callback) {
       // Get detailed information about the place from Google Places API
-      request.get({
-        url: 'https://maps.googleapis.com/maps/api/place/details/json',
-        qs: {
-          key: config.googleApiKey,
-          placeid: place.place_id
-        }
-      }, function(err, resp, placeBody) {
-        placeBody = JSON.parse(placeBody);
+      google.getPlaceDetails(place.place_id, function(err, placeBody) {
+        if (err) return callback(err);
         // Return a parsed version of the place
-        callback(err, Place.mapGoogleItem(placeBody.result));
+        callback(null, Place.mapGoogleItem(placeBody));
       });
     }, function(err, places) {
       if (err) return response(req, res, 500, err);
 
-      response(req, res, 200, places, searchBody.next_page_token);
+      response(req, res, 200, places, next);
     });
   });
 };
