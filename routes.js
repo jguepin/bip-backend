@@ -30,7 +30,9 @@ exports.map = function(app) {
   /**
    * PLACES
    */
-  app.get('/places/search', places.search);
+  app.get('/places/search', places.textSearch);
+  app.get('/places/nearby', places.nearbySearch);
+
   app.post('/places/save', requireLogin, places.save);
   app.delete('/places/:placeId', requireLogin, places.remove);
   app.post('/places/send', requireLogin, places.send);

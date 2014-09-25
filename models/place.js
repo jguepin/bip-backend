@@ -33,7 +33,7 @@ PlaceSchema.statics.mapGoogleItem = function(placeItem) {
   if (placeItem.opening_hours && placeItem.opening_hours.periods) {
     place.hours = {};
     _.each(placeItem.opening_hours.periods, function(period) {
-      place.hours[period.open.day] = { open: period.open.time, close: period.close.time };
+      place.hours[period.open.day] = { open: period.open && period.open.time, close: period.close && period.close.time };
     });
   }
 

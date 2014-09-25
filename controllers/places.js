@@ -5,23 +5,32 @@ var google = require('../lib/google'),
     Place = require('../models/place'),
     Notification = require('../models/notification');
 
-exports.search = function(req, res) {
-  // Fetch search results from Google Places API
-  google.searchPlaces(req.query.query, req.query.location, function(err, places, next) {
+var searchCallback = function(err, places, next, req, res) {
+  if (err) return response(req, res, 500, err);
+
+  async.map(places, function(place, callback) {
+    // Get detailed information about the place from Google Places API
+    google.getPlaceDetails(place.place_id, function(err, placeBody) {
+      if (err) return callback(err);
+      // Return a parsed version of the place
+      callback(null, Place.mapGoogleItem(placeBody));
+    });
+  }, function(err, places) {
     if (err) return response(req, res, 500, err);
 
-    async.map(places, function(place, callback) {
-      // Get detailed information about the place from Google Places API
-      google.getPlaceDetails(place.place_id, function(err, placeBody) {
-        if (err) return callback(err);
-        // Return a parsed version of the place
-        callback(null, Place.mapGoogleItem(placeBody));
-      });
-    }, function(err, places) {
-      if (err) return response(req, res, 500, err);
+    response(req, res, 200, places, next);
+  });
+};
 
-      response(req, res, 200, places, next);
-    });
+exports.textSearch = function(req, res) {
+  google.searchPlaces(req.query.query, req.query.location, function(err, places, next) {
+    searchCallback(err, places, next, req, res);
+  });
+};
+
+exports.nearbySearch = function(req, res) {
+  google.nearbyPlaces(req.query.location, function(err, places, next) {
+    searchCallback(err, places, next, req, res);
   });
 };
 
