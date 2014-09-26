@@ -33,3 +33,10 @@ Run the Town backend:
 ```
 node server.js
 ```
+
+## TODO
+
+* Support Foursquare API
+* Return Town URLs for places photos, not to expose our API key
+* Cleanup models exposition method
+* Endpoint to set a notification as read
