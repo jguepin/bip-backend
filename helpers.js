@@ -40,7 +40,7 @@ var response = exports.response = function(req, res, code, data, next) {
 exports.requireLogin = function(req, res, next) {
   // Return a 401 if not authenticated, don't go to next middleware
   var handleAuthError = function() {
-    response(res, 401, 'Authentication required');
+    response(req, res, 401, 'Authentication required');
   };
 
   var token = req.get('Authorization');
