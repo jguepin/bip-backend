@@ -26,6 +26,7 @@ exports.map = function(app) {
 
   // User notifs
   app.get('/users/notifications', requireLogin, users.getNotifications);
+  app.post('/users/notifications/:id/read', requireLogin, users.markNotificationAsRead);
 
   /**
    * PLACES

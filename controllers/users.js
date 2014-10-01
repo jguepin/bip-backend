@@ -114,3 +114,13 @@ exports.getNotifications = function(req, res) {
       return response(req, res, 200, notifs);
     });
 };
+
+exports.markNotificationAsRead = function(req, res) {
+  Notification
+    .update({ _id: req.params.id }, { is_read: true })
+    .exec(function(err) {
+      if (err) return response(req, res, 500, err);
+
+      return response(req, res, 200);
+    });
+};
