@@ -52,6 +52,24 @@ PlaceSchema.statics.mapGoogleItem = function(placeItem) {
   return place;
 };
 
+PlaceSchema.statics.mapFoursquareItem = function(placeItem) {
+  var Place = mongoose.model('Place');
+  var place = new Place();
+  console.log(placeItem);
+  place.venue_id = placeItem.id;
+  place.name = placeItem.name;
+  place.type = placeItem.categories && placeItem.categories[0] && placeItem.categories[0].name;
+  place.address = placeItem.location && placeItem.location.formattedAddress;
+  place.latitude = placeItem.location && placeItem.location.lat || undefined;
+  place.longitude = placeItem.location && placeItem.location.lng || undefined;
+  place.phone = placeItem.contact.formatedPhone;
+
+  // TODO: place.price, place.hours, place.photos
+  place._id = undefined;
+
+  return place;
+};
+
 function getGooglePhoto(photo, size) {
   return {
     url: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=' + size + '&photoreference=' + photo.photo_reference + '&key=' + config.googleApiKey,
