@@ -5,8 +5,8 @@ var users = require('./controllers/users'),
     requireLogin = require('./helpers').requireLogin;
 
 exports.map = function(app) {
-  app.get('/', requireLogin, function(req, res) {
-    res.send('Hello World!');
+  app.get('/', function(req, res) {
+    res.send('Welcome to Town!');
   });
 
   /**
