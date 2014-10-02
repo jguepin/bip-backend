@@ -39,3 +39,4 @@ node server.js
 * Support Foursquare API
 * Return Town URLs for places photos, not to expose our API key
 * Cleanup models exposition method
+* Add receiver usernames in `/users/places`
