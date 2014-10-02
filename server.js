@@ -3,7 +3,8 @@ var express = require('express'),
     session = require('express-session'),
     mongoose = require('mongoose');
 
-var routes = require('./routes');
+var routes = require('./routes'),
+    config = require('./config');
 
 var app = express();
 
@@ -17,7 +18,7 @@ app.use(session({
 
 routes.map(app);
 
-mongoose.connect('mongodb://localhost:27017/town');
+mongoose.connect(config.mongoUri);
 mongoose.connection.once('open', function() {
   app.listen(3000, function() {
     console.log('Application running on port 3000.');
