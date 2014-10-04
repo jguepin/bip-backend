@@ -117,10 +117,20 @@ exports.getNotifications = function(req, res) {
 
 exports.markNotificationAsRead = function(req, res) {
   Notification
-    .update({ _id: req.params.id }, { is_read: true })
-    .exec(function(err) {
+    .findOne({ _id: req.params.id })
+    .exec(function(err, notification) {
       if (err) return response(req, res, 500, err);
 
-      return response(req, res, 200);
+      // Mark notification as read
+      notification.is_read = true;
+      notification.save(function(err) {
+        if (err) return response(req, res, 500, err);
+
+        // Save the place in user places
+        req.session.user.savePlace(notification.place, function(err) {
+          if (err) return response(req, res, 500, err);
+          return response(req, res, 200);
+        });
+      });
     });
 };

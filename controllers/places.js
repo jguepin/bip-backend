@@ -84,15 +84,10 @@ exports.save = function(req, res) {
     if (err) return response(req, res, 500, err);
 
     // Save the place in the user places
-    var added = req.session.user.places.addToSet(place._id);
-    if (added.length) {
-      req.session.user.save(function(err) {
-        if (err) return response(req, res, 500, err);
-        return response(req, res, 200);
-      });
-    } else {
+    req.session.user.savePlace(place._id, function(err) {
+      if (err) return response(req, res, 500, err);
       return response(req, res, 200);
-    }
+    });
   });
 };
 
@@ -113,15 +108,10 @@ exports.send = function(req, res) {
       if (err) return response(req, res, 500, err);
 
       // Save the place in the sender places
-      var added = req.session.user.places.addToSet(place._id);
-      if (added.length) {
-        req.session.user.save(function(err) {
-          if (err) return response(req, res, 500, err);
-          return response(req, res, 200);
-        });
-      } else {
+      req.session.user.savePlace(place._id, function(err) {
+        if (err) return response(req, res, 500, err);
         return response(req, res, 200);
-      }
+      });
     });
   });
 };
