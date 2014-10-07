@@ -11,7 +11,8 @@ var UserSchema = new Schema({
   token: { type: String, unique: true },
   home_city: { type: String },
   contacts: [{ type: Schema.ObjectId, ref: 'User' }],
-  places: [{ type: Schema.ObjectId, ref: 'Place' }]
+  places: [{ type: Schema.ObjectId, ref: 'Place' }],
+  devices: []
 });
 
 

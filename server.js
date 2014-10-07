@@ -20,7 +20,8 @@ routes.map(app);
 
 mongoose.connect(config.mongoUri);
 mongoose.connection.once('open', function() {
-  app.listen(process.env.PORT || 3000, function() {
-    console.log('Application running on port ' + process.env.PORT || 3000);
+  var port = process.env.PORT || 3000;
+  app.listen(port, function() {
+    console.log('Application running on port ' + port);
   });
 });

@@ -17,6 +17,9 @@ exports.map = function(app) {
   app.post('/users/login', users.login);
   app.get('/users/me', requireLogin, users.getSelf);
 
+  // Push tokens
+  app.post('/users/push_token', requireLogin, users.addPushToken);
+
   // User places data
   app.get('/users/places', requireLogin, users.getPlaces);
 

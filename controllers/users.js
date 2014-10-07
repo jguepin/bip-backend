@@ -1,5 +1,6 @@
 var bcrypt = require('bcrypt'),
-    uuid = require('node-uuid');
+    uuid = require('node-uuid'),
+    _ = require('lodash');
 
 var User = require('../models/user'),
     Place = require('../models/place'),
@@ -57,6 +58,29 @@ exports.login = function(req, res) {
           response(req, res, 200, user);
         });
       });
+};
+
+// Add a push token to a user for notifications
+exports.addPushToken = function(req, res) {
+  var token;
+  if (req.body.android) {
+    token = { android: req.body.android };
+  } else if (req.body.ios) {
+    token = { ios: req.body.ios };
+  } else {
+    return response(req, res, 400, 'Missing field.');
+  }
+
+  if (!_.some(req.session.user.devices, token)) {
+    req.session.user.devices.push(token);
+    req.session.user.markModified('devices');
+    req.session.user.save(function(err) {
+      if (err) return response(req, res, 500, err);
+      return response(req, res, 200);
+    });
+  } else {
+    return response(req, res, 200);
+  }
 };
 
 // Get the profile of the connected user
