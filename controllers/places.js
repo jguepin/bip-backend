@@ -1,9 +1,11 @@
 var async = require('async');
 
 var google = require('../lib/google'),
+    push_notifications = require('../lib/push_notifications'),
     response = require('../helpers').response,
     Place = require('../models/place'),
-    Notification = require('../models/notification');
+    Notification = require('../models/notification'),
+    User = require('../models/user');
 
 var searchCallback = function(err, places, next, req, res) {
   if (err) return response(req, res, 500, err);
@@ -110,7 +112,22 @@ exports.send = function(req, res) {
       // Save the place in the sender places
       req.session.user.savePlace(place._id, function(err) {
         if (err) return response(req, res, 500, err);
-        return response(req, res, 200);
+        response(req, res, 200);
+
+        // The response has been sent to the user, we can send push notifications to destination users devices in background
+        User
+          .find({ _id: { $in: req.body.to_users }})
+          .exec(function(err, users) {
+            if (!err && users.length) {
+              async.each(users, function(user, callback) {
+                push_notifications.sendPushNotification(user, {
+                  from_user: req.session.user._id,
+                  message: req.body.message,
+                  place: place._id
+                }, callback);
+              });
+            }
+          });
       });
     });
   });
