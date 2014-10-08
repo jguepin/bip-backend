@@ -83,6 +83,25 @@ exports.addPushToken = function(req, res) {
   }
 };
 
+// Remove a push token from a user (after a logout)
+exports.removePushToken = function(req, res) {
+  var token;
+  if (req.body.android) {
+    token = { android: req.body.android };
+  } else if (req.body.ios) {
+    token = { ios: req.body.ios };
+  } else {
+    return response(req, res, 400, 'Missing field.');
+  }
+
+  req.session.user.devices = _.reject(req.session.user.devices, token);
+  req.session.user.markModified('devices');
+  req.session.user.save(function(err) {
+    if (err) return response(req, res, 500);
+    return response(req, res, 200);
+  });
+};
+
 // Get the profile of the connected user
 exports.getSelf = function(req, res) {
   response(req, res, 200, req.session.user);
