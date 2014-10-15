@@ -1,7 +1,7 @@
 var async = require('async');
 
 var google = require('../lib/google'),
-    push_notifications = require('../lib/push_notifications'),
+    pushNotifications = require('../lib/push_notifications'),
     response = require('../helpers').response,
     Place = require('../models/place'),
     Notification = require('../models/notification'),
@@ -97,7 +97,7 @@ exports.send = function(req, res) {
   getOrCreatePlace(req.body.place, function(err, place) {
     if (err || !place) return response(req, res, 500, err);
 
-    // Send a notification to all destination users
+    // Add a notification to all destination users
     async.each(req.body.to_users, function(to_user_id, callback) {
       var notif = new Notification();
       notif.from_user = req.session.user._id;
@@ -120,10 +120,10 @@ exports.send = function(req, res) {
           .exec(function(err, users) {
             if (!err && users.length) {
               async.each(users, function(user, callback) {
-                push_notifications.sendPushNotification(user, {
-                  from_user: req.session.user._id,
+                pushNotifications.sendPushNotification(user, {
+                  from_user: req.session.user,
                   message: req.body.message,
-                  place: place._id
+                  place: place
                 }, callback);
               });
             }
