@@ -20,7 +20,7 @@ var PlaceSchema = new Schema({
   photos: []
 });
 
-PlaceSchema.statics.mapGoogleItem = function(placeItem) {
+var mapGoogleItem = function(placeItem) {
   var Place = mongoose.model('Place');
   var place = new Place();
   place.place_id = placeItem.place_id;
@@ -52,22 +52,38 @@ PlaceSchema.statics.mapGoogleItem = function(placeItem) {
   return place;
 };
 
-PlaceSchema.statics.mapFoursquareItem = function(placeItem) {
+var mapFoursquareItem = function(placeItem) {
   var Place = mongoose.model('Place');
   var place = new Place();
-  console.log(placeItem);
   place.venue_id = placeItem.id;
   place.name = placeItem.name;
   place.type = placeItem.categories && placeItem.categories[0] && placeItem.categories[0].name;
   place.address = placeItem.location && placeItem.location.formattedAddress;
   place.latitude = placeItem.location && placeItem.location.lat || undefined;
   place.longitude = placeItem.location && placeItem.location.lng || undefined;
-  place.phone = placeItem.contact.formatedPhone;
+  place.phone = placeItem.contact.phone;
 
-  // TODO: place.price, place.hours, place.photos
+  if (placeItem.photos && placeItem.photos.groups && placeItem.photos.groups[0] && placeItem.photos.groups[0].items) {
+    place.photos = _.map(placeItem.photos.groups[0].items, function(photo) {
+      return {
+        s: getFoursquarePhoto(photo, 100),
+        m: getFoursquarePhoto(photo, 500),
+        l: getFoursquarePhoto(photo)
+      };
+    });
+  }
+
+  // TODO: place.price, place.hours
   place._id = undefined;
 
   return place;
+};
+
+PlaceSchema.statics.mapItem = function(placeItem) {
+  if (config.placesApi === 'foursquare')
+    return mapFoursquareItem(placeItem);
+  else
+    return mapGoogleItem(placeItem);
 };
 
 function getGooglePhoto(photo, size) {
@@ -75,6 +91,14 @@ function getGooglePhoto(photo, size) {
     url: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=' + size + '&photoreference=' + photo.photo_reference + '&key=' + config.googleApiKey,
     width: size,
     height: Math.round((photo.height * size) / photo.width)
+  };
+}
+
+function getFoursquarePhoto(photo, size) {
+  return {
+    url: photo.prefix + (size ? 'width' + size : 'original') + photo.suffix,
+    width: size || photo.width,
+    height: size ? Math.round((photo.height * size) / photo.width) : photo.height
   };
 }
 

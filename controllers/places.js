@@ -1,21 +1,25 @@
 var async = require('async');
 
 var google = require('../lib/google'),
+    foursquare = require('../lib/foursquare'),
     pushNotifications = require('../lib/push_notifications'),
     response = require('../helpers').response,
+    config = require('../config'),
     Place = require('../models/place'),
     Notification = require('../models/notification'),
     User = require('../models/user');
+
+var placesApi = config.placesApi === 'foursquare' ? foursquare : google;
 
 var searchCallback = function(err, places, next, req, res) {
   if (err) return response(req, res, 500, err);
 
   async.map(places, function(place, callback) {
-    // Get detailed information about the place from Google Places API
-    google.getPlaceDetails(place.place_id, function(err, placeBody) {
+    // Get detailed information about the place from the Places API
+    placesApi.getPlaceDetails(place, function(err, placeBody) {
       if (err) return callback(err);
       // Return a parsed version of the place
-      callback(null, Place.mapGoogleItem(placeBody));
+      callback(null, Place.mapItem(placeBody));
     });
   }, function(err, places) {
     if (err) return response(req, res, 500, err);
@@ -25,13 +29,13 @@ var searchCallback = function(err, places, next, req, res) {
 };
 
 exports.textSearch = function(req, res) {
-  google.searchPlaces(req.query.query, req.query.location, function(err, places, next) {
+  placesApi.searchPlaces(req.query.query, req.query.location, function(err, places, next) {
     searchCallback(err, places, next, req, res);
   });
 };
 
 exports.nearbySearch = function(req, res) {
-  google.nearbyPlaces(req.query.location, function(err, places, next) {
+  placesApi.nearbyPlaces(req.query.location, function(err, places, next) {
     searchCallback(err, places, next, req, res);
   });
 };
