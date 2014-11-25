@@ -61,6 +61,7 @@ var mapFoursquareItem = function(placeItem) {
   place.address = placeItem.location && placeItem.location.formattedAddress;
   place.latitude = placeItem.location && placeItem.location.lat || undefined;
   place.longitude = placeItem.location && placeItem.location.lng || undefined;
+  place.price = placeItem.price && placeItem.price.tier || undefined;
   place.phone = placeItem.contact.phone;
 
   if (placeItem.photos && placeItem.photos.groups && placeItem.photos.groups[0] && placeItem.photos.groups[0].items) {
@@ -73,7 +74,13 @@ var mapFoursquareItem = function(placeItem) {
     });
   }
 
-  // TODO: place.price, place.hours
+  if (placeItem.hours && placeItem.hours.timeframes) {
+    place.hours = {};
+    _.each(placeItem.hours.timeframes, function(timeframe) {
+      place.hours[timeframe.days] = { open: timeframe.open[0].renderedTime };
+    });
+  }
+
   place._id = undefined;
 
   return place;
