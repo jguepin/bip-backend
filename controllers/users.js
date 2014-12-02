@@ -155,11 +155,20 @@ exports.getNotifications = function(req, res) {
     .exec(function(err, notifs) {
       if (err) return response(req, res, 500, err);
 
-      var groupedNotifs = {};
-      _.each(notifs, function(notif) {
-        groupedNotifs[notif.from_user.username] = (groupedNotifs[notif.from_user.username] || []).concat(notif);
+      // Group notifications by sending user
+      var groupedByUsers = _.groupBy(notifs, function(notif) { return notif.from_user._id; });
+
+      // Map a new object for each group of notifs
+      var formattedNotifs = _.map(_.keys(groupedByUsers), function(userId) {
+        var userNotifs = groupedByUsers[userId];
+        return {
+          from_user: userNotifs[0].from_user,
+          notifications: userNotifs,
+          has_unread: _.some(userNotifs, function(userNotif) { return !userNotif.is_read; })
+        };
       });
-      return response(req, res, 200, groupedNotifs);
+
+      return response(req, res, 200, formattedNotifs);
     });
 };
 
