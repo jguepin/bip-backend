@@ -154,12 +154,7 @@ exports.getNotifications = function(req, res) {
     .populate('place from_user')
     .exec(function(err, notifs) {
       if (err) return response(req, res, 500, err);
-
-      var groupedNotifs = {};
-      _.each(notifs, function(notif) {
-        groupedNotifs[notif.from_user.username] = (groupedNotifs[notif.from_user.username] || []).concat(notif);
-      });
-      return response(req, res, 200, groupedNotifs);
+      return response(req, res, 200, notifs);
     });
 };
 
