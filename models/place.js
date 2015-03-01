@@ -1,6 +1,6 @@
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    _ = require('lodash');
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+var _ = require('lodash');
 
 var config = require('../config');
 

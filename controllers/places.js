@@ -1,13 +1,13 @@
 var async = require('async');
 
-var google = require('../lib/google'),
-    foursquare = require('../lib/foursquare'),
-    pushNotifications = require('../lib/push_notifications'),
-    response = require('../helpers').response,
-    config = require('../config'),
-    Place = require('../models/place'),
-    Notification = require('../models/notification'),
-    User = require('../models/user');
+var google = require('../lib/google');
+var foursquare = require('../lib/foursquare');
+var pushNotifications = require('../lib/push_notifications');
+var response = require('../helpers').response;
+var config = require('../config');
+var Place = require('../models/place');
+var Notification = require('../models/notification');
+var User = require('../models/user');
 
 var placesApi = config.placesApi === 'foursquare' ? foursquare : google;
 
@@ -18,6 +18,7 @@ var searchCallback = function(err, places, next, req, res) {
     // Get detailed information about the place from the Places API
     placesApi.getPlaceDetails(place, function(err, placeBody) {
       if (err) return callback(err);
+      
       // Return a parsed version of the place
       callback(null, Place.mapItem(placeBody));
     });
@@ -86,14 +87,17 @@ var getOrCreatePlace = function(placeData, callback) {
 };
 
 exports.save = function(req, res) {
-  getOrCreatePlace(req.body, function(err, place) {
+  async.waterfall([
+    function(callback) {
+      getOrCreatePlace(req.body, callback);
+    },
+    function(place, callback) {
+      // Save the place in the user places
+      req.session.user.savePlace(place._id, callback);
+    }
+  ], function(err) {
     if (err) return response(req, res, 500, err);
-
-    // Save the place in the user places
-    req.session.user.savePlace(place._id, function(err) {
-      if (err) return response(req, res, 500, err);
-      return response(req, res, 200);
-    });
+    return response(req, res, 200);
   });
 };
 

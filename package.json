@@ -3,9 +3,18 @@
   "version": "0.0.1",
   "author": "Florent Quinti & Julien Guepin",
   "description": "Talk places with your friends",
+  "main": "server.js",
+  "private": true,
   "homepage": "",
   "engines": {
     "node": ">=0.10.0"
+  },
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chmod0/town-backend"
   },
   "dependencies": {
     "async": "0.9.0",
@@ -17,6 +26,7 @@
     "mongoose": "3.8.15",
     "node-gcm": "^0.9.12",
     "node-uuid": "~1.4.1",
+    "rarity": "^2.1.1",
     "request": "~2.40.0"
   }
 }

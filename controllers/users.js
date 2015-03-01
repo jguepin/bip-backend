@@ -1,11 +1,13 @@
-var bcrypt = require('bcrypt'),
-    uuid = require('node-uuid'),
-    _ = require('lodash');
+var bcrypt = require('bcrypt');
+var uuid = require('node-uuid');
+var _ = require('lodash');
+var async = require('async');
+var rarity = require('rarity');
 
-var User = require('../models/user'),
-    Place = require('../models/place'),
-    Notification = require('../models/notification'),
-    response = require('../helpers').response;
+var User = require('../models/user');
+var Place = require('../models/place');
+var Notification = require('../models/notification');
+var response = require('../helpers').response;
 
 var SALT_WORK_FACTOR = 10;
 
@@ -21,43 +23,51 @@ exports.signup = function(req, res) {
   user.username = username;
   user.email = email;
   user.token = uuid();
-  bcrypt.hash(password, SALT_WORK_FACTOR, function(err, passwordHash) {
+
+  async.waterfall([
+    function(callback) {
+      bcrypt.hash(password, SALT_WORK_FACTOR, callback);
+    },
+    function(passwordHash, callback) {
+      user.password = passwordHash;
+      user.save(callback);
+    }
+
+  ], function(err) {
+    if (err && err.code === 11000) return response(req, res, 500, 'Duplicate username.');
+    if (err && err.name === 'ValidationError') return response(req, res, 400, 'Email is invalid.');
     if (err) return response(req, res, 500, err);
 
-    user.password = passwordHash;
-    user.save(function(err) {
-      if (err) {
-        if (err.code === 11000)
-          return response(req, res, 500, 'Duplicate username.');
-        else if (err.name === 'ValidationError')
-          return response(req, res, 400, 'Email is invalid.');
-
-        return response(req, res, 500, err);
-      }
-
-      req.session.user = user;
-      response(req, res, 200, user);
-    });
+    req.session.user = user;
+    response(req, res, 200, user);
   });
 };
 
 // Login a user with a username or an email and a password
 exports.login = function(req, res) {
-    var identifier = req.body.identifier;
-    var password = req.body.password;
-    if (!identifier || !password) return response(req, res, 400, 'Missing field.');
-    User
-      .findOne({ $or:[{ username: identifier }, { email: identifier }] })
-      .exec(function(err, user) {
-        if (err || !user) return response(req, res, 404, 'User not found');
+  var identifier = req.body.identifier;
+  var password = req.body.password;
+  if (!identifier || !password) return response(req, res, 400, 'Missing field.');
 
-        user.verifyPassword(req.body.password, function(err, match) {
-          if (err || !match) return response(req, res, 401, 'Wrong password');
+  async.waterfall([
+    function(callback) {
+      User
+        .findOne({ $or:[{ username: identifier }, { email: identifier }] })
+        .exec(rarity.slice(2, callback));
+    },
+    function(user, callback) {
+      if (!user) return callback('notfound');
 
-          req.session.user = user;
-          response(req, res, 200, user);
-        });
-      });
+      user.verifyPassword(req.body.password, callback);
+    }
+  ], function(err, match) {
+    if (err === 'notfound') return response(req, res, 404, 'User not found');
+    if (err) return response(req, res, 500);
+    if (!match) return response(req, res, 401, 'Wrong password');
+
+    req.session.user = user;
+    response(req, res, 200, user);
+  });
 };
 
 // Add a push token to a user for notifications
@@ -120,23 +130,29 @@ exports.getPlaces = function(req, res) {
 // Add a contact to a user
 exports.addContact = function(req, res) {
   var identifier = req.body.identifier;
-  User
-    .findOne({ $or: [{ username: identifier }, { email: identifier }] })
-    .exec(function(err, user) {
-      if (err || !user) return response(req, res, 404, 'User not found');
+  async.waterfall([
+    function(callback) {
+      User
+        .findOne({ $or: [{ username: identifier }, { email: identifier }] })
+        .exec(rarity.slice(2, callback));
+    },
+    function(user, callback) {
+      if (!user) return callback('notfound');
 
       // Save the contact user in the current user contacts
       var added = req.session.user.contacts.addToSet(user._id);
       if (added.length) {
-        req.session.user.save(function(err) {
-          if (err) return response(req, res, 500);
-
-          return response(req, res, 200);
-        });
+        req.session.user.save(rarity.carry([user], callback));
       } else {
-        return response(req, res, 200);
+        return callback(null, user);
       }
-    });
+    },
+  ], function(err, user) {
+    if (err === 'notfound') return response(req, res, 404, 'User not found');
+    if (err) return response(req, res, 500);
+
+    return response(req, res, 200, user);
+  });
 };
 
 exports.getContacts = function(req, res) {
@@ -159,21 +175,23 @@ exports.getNotifications = function(req, res) {
 };
 
 exports.markNotificationAsRead = function(req, res) {
-  Notification
-    .findOne({ _id: req.params.id })
-    .exec(function(err, notification) {
-      if (err) return response(req, res, 500, err);
-
+  async.waterfall([
+    function(callback) {
+      Notification
+        .findOne({ _id: req.params.id })
+        .exec(rarity.slice(2, callback));
+    },
+    function(notification, callback) {
       // Mark notification as read
       notification.is_read = true;
-      notification.save(function(err) {
-        if (err) return response(req, res, 500, err);
-
-        // Save the place in user places
-        req.session.user.savePlace(notification.place, function(err) {
-          if (err) return response(req, res, 500, err);
-          return response(req, res, 200);
-        });
-      });
-    });
+      notification.save(rarity.slice(2, callback));
+    },
+    function(notification, callback) {
+      // Save the place in user places
+      req.session.user.savePlace(notification.place, callback);
+    }
+  ], function(err) {
+    if (err) return response(req, res, 500, err);
+    return response(req, res, 200);
+  });
 };

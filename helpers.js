@@ -1,4 +1,6 @@
 var _ = require('lodash');
+var async = require('async');
+var rarity = require('rarity');
 
 // Modify the toJSON method to modify the exposed object
 // TODO: find a better way to traverse objects recursively and transform properties
@@ -38,22 +40,25 @@ var response = exports.response = function(req, res, code, data, next) {
 
 // Middleware to check if the user is authenticated
 exports.requireLogin = function(req, res, next) {
-  // Return a 401 if not authenticated, don't go to next middleware
-  var handleAuthError = function() {
-    response(req, res, 401, 'Authentication required');
-  };
+  async.waterfall([
+    function(callback) {
+      var token = req.get('Authorization');
+      if (!token) callback('auth');
 
-  var token = req.get('Authorization');
-  if (!token) return handleAuthError();
-
-  // Lookup for this token in the users db
-  var User = require('./models/user');
-  User
-    .findOne({ token: token })
-    .exec(function(err, user) {
-      if (err || !user) return handleAuthError();
-
+      // Lookup for this token in the users db
+      var User = require('./models/user');
+      User.findOne({ token: token }).exec(rarity.slice(2, callback));
+    },
+    function(user, callback) {
+      if (!user) return callback('auth');
       req.session.user = user;
-      next();
+      callback();
+    }
+  ], function(err) {
+    // Return a 401 if not authenticated, don't go to next middleware
+    if (err === 'auth') return response(req, res, 401, 'Authentication required');
+    if (err) return response(req, res, 500);
+
+    next();
   });
 };

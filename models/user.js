@@ -1,6 +1,6 @@
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    bcrypt = require('bcrypt');
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+var bcrypt = require('bcrypt');
 
 var makeExposable = require('../helpers').makeExposable;
 
