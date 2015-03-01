@@ -6,7 +6,7 @@ var users = require('./controllers/users'),
 
 exports.map = function(app) {
   app.get('/', function(req, res) {
-    res.send('Welcome to Town!');
+    res.json({});
   });
 
   /**

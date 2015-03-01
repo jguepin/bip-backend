@@ -1,6 +1,6 @@
-# town-backend
+# bip-backend
 
-The Town backend is a Node.js server exposing an API using Express.js framework, storing data in MongoDB.
+The Bip backend is a Node.js server exposing an API using Express.js framework, storing data in MongoDB.
 
 ## Requirements
 
@@ -29,7 +29,7 @@ Run MongoDB:
 mongod
 ```
 
-Run the Town backend:
+Run the Bip backend:
 ```
 npm start
 ```
@@ -38,6 +38,6 @@ npm start
 
 * Add receiver usernames in `/users/places`
 * Better handling of error (Error, statuses...)
-* Return Town URLs for places photos, not to expose our API key
+* Return Bip URLs for places photos, not to expose our API key
 * Cleanup models exposition method
 * Queue push notifications sending in DB

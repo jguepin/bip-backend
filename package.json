@@ -1,5 +1,5 @@
 {
-  "name": "Town",
+  "name": "Bip",
   "version": "0.0.1",
   "author": "Florent Quinti & Julien Guepin",
   "description": "Talk places with your friends",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/chmod0/town-backend"
+    "url": "https://github.com/chmod0/bip-backend"
   },
   "dependencies": {
     "async": "0.9.0",
