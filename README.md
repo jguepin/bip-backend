@@ -31,12 +31,13 @@ mongod
 
 Run the Town backend:
 ```
-node server.js
+npm start
 ```
 
 ## TODO
 
+* Add receiver usernames in `/users/places`
+* Better handling of error (Error, statuses...)
 * Return Town URLs for places photos, not to expose our API key
 * Cleanup models exposition method
-* Add receiver usernames in `/users/places`
 * Queue push notifications sending in DB

@@ -5,8 +5,8 @@ var _ = require('lodash');
 var config = require('../config');
 
 var PlaceSchema = new Schema({
-  venue_id: String, // Foursquare ID
-  place_id: String, // Google Places ID
+  venue_id: { type: String, unique: true }, // Foursquare ID
+  place_id: { type: String, unique: true }, // Google Places ID
   created: { type: Date, default: Date.now },
   name: String,
   type: String,

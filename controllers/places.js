@@ -18,7 +18,7 @@ var searchCallback = function(err, places, next, req, res) {
     // Get detailed information about the place from the Places API
     placesApi.getPlaceDetails(place, function(err, placeBody) {
       if (err) return callback(err);
-      
+
       // Return a parsed version of the place
       callback(null, Place.mapItem(placeBody));
     });
@@ -42,6 +42,9 @@ exports.nearbySearch = function(req, res) {
 };
 
 var getOrCreatePlace = function(placeData, callback) {
+  if (!(placeData._id || placeData.place_id || placeData.venue_id))
+    return callback('Missing parameter!');
+
   if (placeData._id) {
     // It's a place from our DB
     Place
@@ -51,10 +54,17 @@ var getOrCreatePlace = function(placeData, callback) {
         return callback(null, place);
       });
 
-  } else if (placeData.place_id) {
-    // It's a place from Google Places
+  } else {
+    // It's a place from Google Places or Foursquare
+    var criteria = {};
+    if (placeData.place_id) {
+      criteria.place_id = placeData.place_id;
+    } else {
+      criteria.venue_id = placeData.venue_id;
+    }
+
     Place
-      .findOne({ place_id: placeData.place_id })
+      .findOne(criteria)
       .exec(function(err, place) {
         if (err) return callback(err);
 
@@ -65,6 +75,7 @@ var getOrCreatePlace = function(placeData, callback) {
         // The place is not saved in our db yet, save it!
           place = new Place();
           place.place_id = placeData.place_id;
+          place.venue_id = placeData.venue_id;
           place.name = placeData.name;
           place.location = placeData.location;
           place.type = placeData.type;
@@ -81,8 +92,6 @@ var getOrCreatePlace = function(placeData, callback) {
           });
         }
     });
-  } else {
-    return callback('Missing parameter!');
   }
 };
 
