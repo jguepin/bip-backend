@@ -6,5 +6,6 @@ module.exports = {
     clientSecret: process.env.FOURSQUARE_CLIENT_SECRET || 'YO0D1ITR4JC5HSJXBZWTAO3XBGHWH11CCRG4KYIRTD0ECLAM',
     version: '20141001'
   },
-  placesApi: process.env.PLACES_API || 'foursquare'
+  placesApi: process.env.PLACES_API || 'foursquare',
+  concurrency: process.env.WEB_CONCURRENCY || 1
 };

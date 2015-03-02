@@ -27,6 +27,7 @@
     "node-gcm": "^0.9.12",
     "node-uuid": "~1.4.1",
     "rarity": "^2.1.1",
-    "request": "~2.40.0"
+    "request": "~2.40.0",
+    "throng": "^1.0.0"
   }
 }
