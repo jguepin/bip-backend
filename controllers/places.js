@@ -136,6 +136,7 @@ exports.send = function(req, res) {
       });
     },
     function(callback) {
+      console.log('payload!', req.body.place);
       getOrCreatePlace(req.body.place, callback);
     },
     function(place, callback) {
