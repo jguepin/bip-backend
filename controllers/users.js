@@ -58,9 +58,9 @@ exports.login = function(req, res) {
     function(user, callback) {
       if (!user) return callback('notfound');
 
-      user.verifyPassword(req.body.password, callback);
+      user.verifyPassword(req.body.password, rarity.carry([user], callback));
     }
-  ], function(err, match) {
+  ], function(err, user, match) {
     if (err === 'notfound') return response(req, res, 404, 'User not found');
     if (err) return response(req, res, 500);
     if (!match) return response(req, res, 401, 'Wrong password');
