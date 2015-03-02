@@ -31,7 +31,7 @@ var response = exports.response = function(req, res, code, data, next) {
     envelope.data = data && JSON.parse(stringify(data, req)) || null;
     if (next) envelope.next = next;
   } else {
-    console.error(new Error(data));
+    console.error(data);
     envelope.status = 'error';
     envelope.message = data || 'Internal Server Error';
   }

@@ -1,4 +1,6 @@
 var async = require('async');
+var rarity = require('rarity');
+var _ = require('lodash');
 
 var google = require('../lib/google');
 var foursquare = require('../lib/foursquare');
@@ -111,42 +113,69 @@ exports.save = function(req, res) {
 };
 
 exports.send = function(req, res) {
-  getOrCreatePlace(req.body.place, function(err, place) {
-    if (err || !place) return response(req, res, 500, err);
+  var responded = false;
+  var sentPlace;
 
-    // Add a notification to all destination users
-    async.each(req.body.to_users, function(to_user_id, callback) {
-      var notif = new Notification();
-      notif.from_user = req.session.user._id;
-      notif.place = place._id;
-      notif.message = req.body.message;
-      notif.to_user = to_user_id;
-      notif.save(callback);
-
-    }, function(err) {
-      if (err) return response(req, res, 500, err);
-
-      // Save the place in the sender places
-      req.session.user.savePlace(place._id, function(err) {
-        if (err) return response(req, res, 500, err);
-        response(req, res, 200);
-
-        // The response has been sent to the user, we can send push notifications to destination users devices in background
-        User
-          .find({ _id: { $in: req.body.to_users }})
-          .exec(function(err, users) {
-            if (!err && users.length) {
-              async.each(users, function(user, callback) {
-                pushNotifications.sendPushNotification(user, {
-                  from_user: req.session.user,
-                  message: req.body.message,
-                  place: place
-                }, callback);
-              });
-            }
-          });
+  async.waterfall([
+    // Map user ids to req.body.to_users if usernames are given
+    function(callback) {
+      var isUsernames = _.find(req.body.to_users, function(to_user) {
+        return !/^[0-9a-fA-F]{24}$/.test(to_user);
       });
-    });
+      if (!isUsernames) {
+        return callback();
+      }
+      // Get user ids from usernames
+      async.map(req.body.to_users, function(to_user, mapCb) {
+        User.findOne({ username: to_user }, '_id', function(err, user) {
+          return mapCb(err, user._id);
+        });
+      }, function(err, users) {
+        req.body.to_users = users;
+        return callback(err);
+      });
+    },
+    function(callback) {
+      getOrCreatePlace(req.body.place, callback);
+    },
+    function(place, callback) {
+      if (!place) return callback(true);
+      sentPlace = place;
+
+      // Add a notification to all destination users
+      async.each(req.body.to_users, function(to_user_id, eachCb) {
+        var notif = new Notification();
+        notif.from_user = req.session.user._id;
+        notif.place = place._id;
+        notif.message = req.body.message;
+        notif.to_user = to_user_id;
+        notif.save(eachCb);
+      }, rarity.slice(1, callback));
+    },
+    function(callback) {
+      // Save the place in the sender places
+      req.session.user.savePlace(sentPlace._id, rarity.slice(1, callback));
+    },
+    function(callback) {
+      response(req, res, 200);
+      responded = true;
+
+      // The response has been sent to the user, we can send push notifications to destination users devices in background
+      User
+        .find({ _id: { $in: req.body.to_users }})
+        .exec(rarity.slice(2, callback));
+    },
+    function(users, callback) {
+      async.each(users, function(user, eachCb) {
+        pushNotifications.sendPushNotification(user, {
+          from_user: req.session.user,
+          message: req.body.message,
+          place: sentPlace
+        }, eachCb);
+      }, callback);
+    }
+  ], function(err) {
+    if (err && !responded) return response(req, res, 500, err);
   });
 };
 

@@ -11,7 +11,9 @@ var start = function() {
 };
 
 var stop = function(err) {
-  if (err) console.error(err);
+  if (err) {
+    throw err;
+  }
 
   console.log('Stopping worker.');
   process.exit(0);
