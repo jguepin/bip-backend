@@ -136,7 +136,6 @@ exports.send = function(req, res) {
       });
     },
     function(callback) {
-      console.log('payload!', req.body.place, req.body.place && req.body.place.photos && req.body.place.photos.length && req.body.place.photos[0].l);
       getOrCreatePlace(req.body.place, callback);
     },
     function(place, callback) {
