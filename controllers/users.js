@@ -20,7 +20,7 @@ exports.signup = function(req, res) {
   if (!username || !password || !email) return response(req, res, 400, 'Missing field.');
 
   var user = new User();
-  user.username = username;
+  user.username = username.toLowerCase();
   user.email = email;
   user.token = uuid();
 
@@ -45,7 +45,7 @@ exports.signup = function(req, res) {
 
 // Login a user with a username or an email and a password
 exports.login = function(req, res) {
-  var identifier = req.body.identifier;
+  var identifier = req.body.identifier.toLowerCase();
   var password = req.body.password;
   if (!identifier || !password) return response(req, res, 400, 'Missing field.');
 
@@ -129,7 +129,7 @@ exports.getPlaces = function(req, res) {
 
 // Add a contact to a user
 exports.addContact = function(req, res) {
-  var identifier = req.body.identifier;
+  var identifier = req.body.identifier.toLowerCase();
   async.waterfall([
     function(callback) {
       User

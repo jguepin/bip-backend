@@ -127,7 +127,7 @@ exports.send = function(req, res) {
       }
       // Get user ids from usernames
       async.map(req.body.to_users, function(to_user, mapCb) {
-        User.findOne({ username: to_user }, '_id', function(err, user) {
+        User.findOne({ username: to_user.toLowerCase() }, '_id', function(err, user) {
           return mapCb(err, user._id);
         });
       }, function(err, users) {
