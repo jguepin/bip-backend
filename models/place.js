@@ -5,8 +5,8 @@ var _ = require('lodash');
 var config = require('../config');
 
 var PlaceSchema = new Schema({
-  venue_id: { type: String, unique: true }, // Foursquare ID
-  place_id: { type: String, unique: true }, // Google Places ID
+  foursquare_id: { type: String, unique: true }, // Foursquare ID
+  google_id: { type: String, unique: true }, // Google Places ID
   created: { type: Date, default: Date.now },
   name: String,
   type: String,
@@ -23,7 +23,7 @@ var PlaceSchema = new Schema({
 var mapGoogleItem = function(placeItem) {
   var Place = mongoose.model('Place');
   var place = new Place();
-  place.place_id = placeItem.place_id;
+  place.google_id = placeItem.place_id;
   place.name = placeItem.name;
   place.type = placeItem.types && placeItem.types.length && placeItem.types[0];
   place.address = placeItem.formatted_address;
@@ -55,7 +55,7 @@ var mapGoogleItem = function(placeItem) {
 var mapFoursquareItem = function(placeItem) {
   var Place = mongoose.model('Place');
   var place = new Place();
-  place.venue_id = placeItem.id;
+  place.foursquare_id = placeItem.id;
   place.name = placeItem.name;
   place.type = placeItem.categories && placeItem.categories[0] && placeItem.categories[0].name;
   place.address = placeItem.location && placeItem.location.formattedAddress;
