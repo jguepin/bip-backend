@@ -1,5 +1,5 @@
 module.exports = {
-  mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/town',
+  mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/bip',
   googleApiKey: process.env.GOOGLE_KEY || 'AIzaSyCqsC2DXaAFg8xVBhLBeudM944GiTuGF8Q',
   foursquare: {
     clientId: process.env.FOURSQUARE_CLIENT_ID || 'VW2JSE3TSAIYMX410V1SNJJEEGEEYKZ0CV5PJK0XFIOLJVRP',
