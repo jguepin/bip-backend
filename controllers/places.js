@@ -100,8 +100,7 @@ var getOrCreatePlace = function(placeData, callback) {
 exports.save = function(req, res) {
   async.waterfall([
     function(callback) {
-      console.log(req.body)
-      getOrCreatePlace(req.body, callback);
+      getOrCreatePlace(req.body.place, callback);
     },
     function(place, callback) {
       // Save the place in the user places
