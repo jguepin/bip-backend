@@ -12,7 +12,7 @@ var UserSchema = new Schema({
   home_city: { type: String },
   contacts: [{ type: Schema.ObjectId, ref: 'User' }],
   places: [{ type: Schema.ObjectId, ref: 'Place' }],
-  devices: []
+  devices: [{ ios: 'String', android: 'String' }]
 });
 
 

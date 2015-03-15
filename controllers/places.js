@@ -32,12 +32,16 @@ var searchCallback = function(err, places, next, req, res) {
 };
 
 exports.textSearch = function(req, res) {
+  if (!req.query.query) return response(req, res, 400);
+
   placesApi.searchPlaces(req.query.query, req.query.location, function(err, places, next) {
     searchCallback(err, places, next, req, res);
   });
 };
 
 exports.nearbySearch = function(req, res) {
+  if (!req.query.location) return response(req, res, 400);
+
   placesApi.nearbyPlaces(req.query.location, function(err, places, next) {
     searchCallback(err, places, next, req, res);
   });
@@ -98,6 +102,8 @@ var getOrCreatePlace = function(placeData, callback) {
 };
 
 exports.save = function(req, res) {
+  if (!req.body.place) return response(req, res, 400);
+
   async.waterfall([
     function(callback) {
       getOrCreatePlace(req.body.place, callback);
@@ -113,6 +119,8 @@ exports.save = function(req, res) {
 };
 
 exports.send = function(req, res) {
+  if (!req.body.to_users || !req.body.place) return response(req, res, 400);
+
   var responded = false;
   var sentPlace;
 
@@ -180,6 +188,8 @@ exports.send = function(req, res) {
 };
 
 exports.remove = function(req, res) {
+  if (!req.params.placeId) return response(req, res, 400);
+  
   var result = req.session.user.places.pull(req.params.placeId);
   req.session.user.save(function(err) {
     if (err) response(req, res, 500);

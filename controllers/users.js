@@ -17,7 +17,7 @@ exports.signup = function(req, res) {
   var password = req.body.password;
   var email = req.body.email;
 
-  if (!username || !password || !email) return response(req, res, 400, 'Missing field.');
+  if (!username || !password || !email) return response(req, res, 400);
 
   var user = new User();
   user.username = username.toLowerCase();
@@ -47,7 +47,7 @@ exports.signup = function(req, res) {
 exports.login = function(req, res) {
   var identifier = req.body.identifier.toLowerCase();
   var password = req.body.password;
-  if (!identifier || !password) return response(req, res, 400, 'Missing field.');
+  if (!identifier || !password) return response(req, res, 400);
 
   async.waterfall([
     function(callback) {
@@ -78,7 +78,7 @@ exports.addPushToken = function(req, res) {
   } else if (req.body.ios) {
     token = { ios: req.body.ios };
   } else {
-    return response(req, res, 400, 'Missing field.');
+    return response(req, res, 400, 'Token is missing.');
   }
 
   if (!_.some(req.session.user.devices, token)) {
@@ -101,7 +101,7 @@ exports.removePushToken = function(req, res) {
   } else if (req.body.ios) {
     token = { ios: req.body.ios };
   } else {
-    return response(req, res, 400, 'Missing field.');
+    return response(req, res, 400, 'Token is missing.');
   }
 
   req.session.user.devices = _.reject(req.session.user.devices, token);
@@ -130,6 +130,8 @@ exports.getPlaces = function(req, res) {
 // Add a contact to a user
 exports.addContact = function(req, res) {
   var identifier = req.body.identifier.toLowerCase();
+  if (!identifier) return response(req, res, 400, 'Contact identifier is missing.');
+
   async.waterfall([
     function(callback) {
       User
@@ -175,6 +177,9 @@ exports.getNotifications = function(req, res) {
 };
 
 exports.markNotificationAsRead = function(req, res) {
+  var notifId = req.params.id;
+  if (!notifId) return response(req, res, 400);
+
   async.waterfall([
     function(callback) {
       Notification

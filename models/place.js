@@ -4,6 +4,17 @@ var _ = require('lodash');
 
 var config = require('../config');
 
+var photoDescription = {
+  url: String,
+  width: Number,
+  height: Number
+};
+var PhotoSchema = new Schema({
+  s: photoDescription,
+  m: photoDescription,
+  l: photoDescription
+});
+
 var PlaceSchema = new Schema({
   foursquare_id: { type: String, unique: true, sparse: true }, // Foursquare ID
   google_id: { type: String, unique: true, sparse: true }, // Google Places ID
@@ -17,7 +28,7 @@ var PlaceSchema = new Schema({
   hours: {},
   score: Number,
   phone: String,
-  photos: []
+  photos: [PhotoSchema]
 });
 
 var mapGoogleItem = function(placeItem) {
