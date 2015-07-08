@@ -1,12 +1,10 @@
-var express = require('express');
-
-var users = require('./controllers/users'),
-    places = require('./controllers/places'),
-    requireLogin = require('./helpers').requireLogin;
+var users = require('./controllers/users');
+var places = require('./controllers/places');
+var requireLogin = require('./helpers').requireLogin;
 
 exports.map = function(app) {
   app.get('/', function(req, res) {
-    res.json({});
+    return res.json({});
   });
 
   /**

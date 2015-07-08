@@ -1,4 +1,3 @@
-var _ = require('lodash');
 var async = require('async');
 var rarity = require('rarity');
 
@@ -29,7 +28,9 @@ var response = exports.response = function(req, res, code, data, next) {
   if (code === 200) {
     envelope.status = 'success';
     envelope.data = data && JSON.parse(stringify(data, req)) || null;
-    if (next) envelope.next = next;
+    if (next) {
+      envelope.next = next;
+    }
   } else {
     if (code === 400 && !data) {
       data = 'Missing field.';
@@ -39,30 +40,38 @@ var response = exports.response = function(req, res, code, data, next) {
     envelope.message = data || 'Internal Server Error';
   }
 
-  res.status(code).send(envelope);
+  return res.status(code).send(envelope);
 };
 
 // Middleware to check if the user is authenticated
 exports.requireLogin = function(req, res, next) {
-  async.waterfall([
+  return async.waterfall([
     function(callback) {
       var token = req.get('Authorization');
-      if (!token) callback('auth');
+      if (!token) {
+        return callback('auth');
+      }
 
       // Lookup for this token in the users db
       var User = require('./models/user');
-      User.findOne({ token: token }).exec(rarity.slice(2, callback));
+      return User.findOne({ token: token }).exec(rarity.slice(2, callback));
     },
     function(user, callback) {
-      if (!user) return callback('auth');
+      if (!user) {
+        return callback('auth');
+      }
       req.session.user = user;
-      callback();
+      return callback();
     }
   ], function(err) {
     // Return a 401 if not authenticated, don't go to next middleware
-    if (err === 'auth') return response(req, res, 401, 'Authentication required');
-    if (err) return response(req, res, 500);
+    if (err === 'auth') {
+      return response(req, res, 401, 'Authentication required');
+    }
+    if (err) {
+      return response(req, res, 500);
+    }
 
-    next();
+    return next();
   });
 };

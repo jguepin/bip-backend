@@ -14,49 +14,63 @@ var User = require('../models/user');
 var placesApi = config.placesApi === 'foursquare' ? foursquare : google;
 
 var searchCallback = function(err, places, next, req, res) {
-  if (err) return response(req, res, 500, err);
+  if (err) {
+    return response(req, res, 500, err);
+  }
 
-  async.map(places, function(place, callback) {
+  return async.map(places, function(place, callback) {
     // Get detailed information about the place from the Places API
-    placesApi.getPlaceDetails(place, function(err, placeBody) {
-      if (err) return callback(err);
+    return placesApi.getPlaceDetails(place, function(err, placeBody) {
+      if (err) {
+        return callback(err);
+      }
 
       // Return a parsed version of the place
-      callback(null, Place.mapItem(placeBody));
+      return callback(null, Place.mapItem(placeBody));
     });
   }, function(err, places) {
-    if (err) return response(req, res, 500, err);
+    if (err) {
+      return response(req, res, 500, err);
+    }
 
-    response(req, res, 200, places, next);
+    return response(req, res, 200, places, next);
   });
 };
 
 exports.textSearch = function(req, res) {
-  if (!req.query.query) return response(req, res, 400);
+  if (!req.query.query) {
+    return response(req, res, 400);
+  }
 
-  placesApi.searchPlaces(req.query.query, req.query.location, function(err, places, next) {
-    searchCallback(err, places, next, req, res);
+  return placesApi.searchPlaces(req.query.query, req.query.location, function(err, places, next) {
+    return searchCallback(err, places, next, req, res);
   });
 };
 
 exports.nearbySearch = function(req, res) {
-  if (!req.query.location) return response(req, res, 400);
+  if (!req.query.location) {
+    return response(req, res, 400);
+  }
 
-  placesApi.nearbyPlaces(req.query.location, function(err, places, next) {
-    searchCallback(err, places, next, req, res);
+  return placesApi.nearbyPlaces(req.query.location, function(err, places, next) {
+    return searchCallback(err, places, next, req, res);
   });
 };
 
 var getOrCreatePlace = function(placeData, callback) {
-  if (!(placeData._id || placeData.google_id || placeData.foursquare_id))
+  if (!(placeData._id || placeData.google_id || placeData.foursquare_id)) {
     return callback('Missing parameter!');
+  }
 
   if (placeData._id) {
     // It's a place from our DB
-    Place
+    return Place
       .findOne({ _id: placeData._id })
       .exec(function(err, place) {
-        if (err || !place) return callback(err || 'Place not found.');
+        if (err || !place) {
+          return callback(err || 'Place not found.');
+        }
+
         return callback(null, place);
       });
 
@@ -69,10 +83,12 @@ var getOrCreatePlace = function(placeData, callback) {
       criteria.foursquare_id = placeData.foursquare_id;
     }
 
-    Place
+    return Place
       .findOne(criteria)
       .exec(function(err, place) {
-        if (err) return callback(err);
+        if (err) {
+          return callback(err);
+        }
 
         if (place) {
           // Place already saved in our db
@@ -93,8 +109,8 @@ var getOrCreatePlace = function(placeData, callback) {
           place.phone = placeData.phone;
           place.photos = placeData.photos;
 
-          place.save(function(err) {
-            callback(err, place);
+          return place.save(function(err) {
+            return callback(err, place);
           });
         }
     });
@@ -102,29 +118,36 @@ var getOrCreatePlace = function(placeData, callback) {
 };
 
 exports.save = function(req, res) {
-  if (!req.body.place) return response(req, res, 400);
+  if (!req.body.place) {
+    return response(req, res, 400);
+  }
 
-  async.waterfall([
+  return async.waterfall([
     function(callback) {
-      getOrCreatePlace(req.body.place, callback);
+      return getOrCreatePlace(req.body.place, callback);
     },
     function(place, callback) {
       // Save the place in the user places
-      req.session.user.savePlace(place._id, callback);
+      return req.session.user.savePlace(place._id, callback);
     }
   ], function(err) {
-    if (err) return response(req, res, 500, err);
+    if (err) {
+      return response(req, res, 500, err);
+    }
+
     return response(req, res, 200);
   });
 };
 
 exports.send = function(req, res) {
-  if (!req.body.to_users || !req.body.place) return response(req, res, 400);
+  if (!req.body.to_users || !req.body.place) {
+    return response(req, res, 400);
+  }
 
   var responded = false;
   var sentPlace;
 
-  async.waterfall([
+  return async.waterfall([
     // Map user ids to req.body.to_users if usernames are given
     function(callback) {
       var isUsernames = _.find(req.body.to_users, function(to_user) {
@@ -134,8 +157,8 @@ exports.send = function(req, res) {
         return callback();
       }
       // Get user ids from usernames
-      async.map(req.body.to_users, function(to_user, mapCb) {
-        User.findOne({ username: to_user.toLowerCase() }, '_id', function(err, user) {
+      return async.map(req.body.to_users, function(to_user, mapCb) {
+        return User.findOne({ username: to_user.toLowerCase() }, '_id', function(err, user) {
           return mapCb(err, user._id);
         });
       }, function(err, users) {
@@ -144,37 +167,40 @@ exports.send = function(req, res) {
       });
     },
     function(callback) {
-      getOrCreatePlace(req.body.place, callback);
+      return getOrCreatePlace(req.body.place, callback);
     },
     function(place, callback) {
-      if (!place) return callback(true);
+      if (!place) {
+        return callback(true);
+      }
+
       sentPlace = place;
 
       // Add a notification to all destination users
-      async.each(req.body.to_users, function(to_user_id, eachCb) {
+      return async.each(req.body.to_users, function(to_user_id, eachCb) {
         var notif = new Notification();
         notif.from_user = req.session.user._id;
         notif.place = place._id;
         notif.message = req.body.message;
         notif.to_user = to_user_id;
-        notif.save(eachCb);
+        return notif.save(eachCb);
       }, rarity.slice(1, callback));
     },
     function(callback) {
       // Save the place in the sender places
-      req.session.user.savePlace(sentPlace._id, rarity.slice(1, callback));
+      return req.session.user.savePlace(sentPlace._id, rarity.slice(1, callback));
     },
     function(callback) {
       response(req, res, 200);
       responded = true;
 
       // The response has been sent to the user, we can send push notifications to destination users devices in background
-      User
+      return User
         .find({ _id: { $in: req.body.to_users }})
         .exec(rarity.slice(2, callback));
     },
     function(users, callback) {
-      async.each(users, function(user, eachCb) {
+      return async.each(users, function(user, eachCb) {
         pushNotifications.sendPushNotification(user, {
           from_user: req.session.user,
           message: req.body.message,
@@ -183,16 +209,23 @@ exports.send = function(req, res) {
       }, callback);
     }
   ], function(err) {
-    if (err && !responded) return response(req, res, 500, err);
+    if (err && !responded) {
+      return response(req, res, 500, err);
+    }
   });
 };
 
 exports.remove = function(req, res) {
-  if (!req.params.placeId) return response(req, res, 400);
-  
+  if (!req.params.placeId) {
+    return response(req, res, 400);
+  }
+
   var result = req.session.user.places.pull(req.params.placeId);
-  req.session.user.save(function(err) {
-    if (err) response(req, res, 500);
-    else response(req, res, 200);
+  return req.session.user.save(function(err) {
+    if (err) {
+      return response(req, res, 500);
+    }
+
+    return response(req, res, 200);
   });
 };

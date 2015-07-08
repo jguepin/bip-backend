@@ -17,16 +17,16 @@ var UserSchema = new Schema({
 
 
 UserSchema.methods.verifyPassword = function(password, callback) {
-  bcrypt.compare(password, this.password, callback);
+  return bcrypt.compare(password, this.password, callback);
 };
 
 UserSchema.methods.savePlace = function(placeId, callback) {
   // Save the place in user places
   var added = this.places.addToSet(placeId);
   if (added.length) {
-    this.save(callback);
+    return this.save(callback);
   } else {
-    callback();
+    return callback();
   }
 };
 

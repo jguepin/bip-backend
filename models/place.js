@@ -98,10 +98,11 @@ var mapFoursquareItem = function(placeItem) {
 };
 
 PlaceSchema.statics.mapItem = function(placeItem) {
-  if (config.placesApi === 'foursquare')
+  if (config.placesApi === 'foursquare') {
     return mapFoursquareItem(placeItem);
-  else
+  } else {
     return mapGoogleItem(placeItem);
+  }
 };
 
 function getGooglePhoto(photo, size) {

@@ -1,10 +1,10 @@
-var express = require('express'),
-    bodyParser = require('body-parser'),
-    session = require('express-session'),
-    mongoose = require('mongoose');
+var express = require('express');
+var bodyParser = require('body-parser');
+var session = require('express-session');
+var mongoose = require('mongoose');
 
-var routes = require('./routes'),
-    config = require('./config');
+var routes = require('./routes');
+var config = require('./config');
 
 var app = express();
 

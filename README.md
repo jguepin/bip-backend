@@ -36,7 +36,6 @@ npm start
 
 ## TODO
 
-* Add receiver usernames in `/users/places`
 * Better handling of error (Error, statuses...)
 * Return Bip URLs for places photos, not to expose our API key
 * Cleanup models exposition method
